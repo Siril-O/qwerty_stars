@@ -2,6 +2,8 @@ package services
 
 import domain.{Car, Coordinate, Rider, SimulationContext}
 
+import scala.collection.mutable
+
 class SimulationRunner {
 
   def runSimulation(simulationContext: SimulationContext): Unit = {
@@ -19,12 +21,15 @@ class SimulationRunner {
     val riders = sortRidersByPriority(simulationContext.riders, simulationContext.cars)
     val unassignedRiders = riders.filter(_.bookedBy == null)
     if (unassignedRiders.nonEmpty) {
-      unassignedRiders.foreach(rider => {
-        val closestCar = findClosestCar(simulationContext.cars, rider)
-        if (closestCar.isDefined) {
-          assignCarToRider(closestCar.get, rider)
-        }
-      })
+      val freeCars = simulationContext.cars.filter(car => car.bookedBy == null)
+      if (freeCars.nonEmpty) {
+        unassignedRiders.foreach(rider => {
+          val closestCar = findClosestCar(freeCars, rider, true)
+          if (closestCar.isDefined) {
+            assignCarToRider(closestCar.get, rider)
+          }
+        })
+      }
     }
     reduceBookedStepForCars(riders, simulationContext.cars)
   }
@@ -58,18 +63,32 @@ class SimulationRunner {
 
 
   private def sortRidersByPriority(riders: List[Rider], cars: List[Car]): List[Rider] = {
-    def comp(cars: List[Car], rider: Rider): Int = {
-      val closestCar = findClosestCar(cars, rider)
-      if (closestCar.isDefined) rider.earliestStep - calcDistance(closestCar.get.coordinates, rider.start) else 0
+
+    val freeCars = cars.filter(car => car.bookedBy == null)
+    if (freeCars.nonEmpty) {
+      val compValues: mutable.HashMap[Rider, Int] = new mutable.HashMap[Rider, Int]()
+      riders.foreach(rider => compValues.put(rider, comp(freeCars, rider)))
+      riders.sortWith((rider1: Rider, rider2: Rider) => {
+        compValues.get(rider1).get < compValues.get(rider2).get
+      })
+    } else {
+      riders
     }
-    riders.sortWith((rider1: Rider, rider2: Rider) => {
-      comp(cars, rider1) < comp(cars, rider2)
-    })
   }
 
-  private def findClosestCar(cars: List[Car], rider: Rider): Option[Car] = {
-    val freeCars = cars.filter(car => car.bookedBy == null)
-    if (freeCars.isEmpty) None else Option(freeCars.minBy((car: Car) => calcDistance(car.coordinates, rider.destination)))
+  private def comp(cars: List[Car], rider: Rider): Int = {
+    val closestCar = findClosestCar(cars, rider, false)
+    if (closestCar.isDefined) rider.earliestStep - calcDistance(closestCar.get.coordinates, rider.start) else 0
+  }
+
+  private def findClosestCar(cars: List[Car], rider: Rider, requiresFiltering: Boolean): Option[Car] = {
+    if (requiresFiltering) {
+      val freeCars = cars.filter(car => car.bookedBy == null)
+      if (freeCars.isEmpty) None else Option(freeCars.minBy((car: Car) => calcDistance(car.coordinates, rider.destination)))
+    } else {
+      if (cars.isEmpty) None else Option(cars.minBy((car: Car) => calcDistance(car.coordinates, rider.destination)))
+    }
+
   }
 
   private def calcDistance(coordinate1: Coordinate, coordinate2: Coordinate): Int = {

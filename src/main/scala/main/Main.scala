@@ -6,7 +6,7 @@ object Main {
 
   def main(args: Array[String]): Unit = {
     try {
-      val mapper: DataMapper = new DataMapper("b_should_be_easy.in")
+      val mapper: DataMapper = new DataMapper("e_high_bonus.in")
       val simulationContext = mapper.initSimulationContextFromInputData()
       val simulationRunner: SimulationRunner = new SimulationRunner()
 
@@ -14,7 +14,7 @@ object Main {
         simulationRunner.runSimulation(simulationContext)
       }
       println(simulationContext.collectResult())
-      mapper.writOutputToFile(simulationContext, "b")
+      mapper.writOutputToFile(simulationContext, "e")
     } catch {
       case exc: Exception => println(exc)
     }
