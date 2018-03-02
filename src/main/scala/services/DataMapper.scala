@@ -1,11 +1,13 @@
 package services
 
+import java.io.{File, PrintWriter}
+
 import domain.{Car, Coordinate, Rider, SimulationContext}
 
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
 
-class InputDataMapper(fileName: String) {
+class DataMapper(fileName: String) {
 
   def initSimulationContextFromInputData(): SimulationContext = {
     val lines: ListBuffer[String] = readFromFile(fileName)
@@ -18,12 +20,18 @@ class InputDataMapper(fileName: String) {
     mapSimulationContext(lines.head, riders)
   }
 
+  def writOutputToFile(simulationContext:SimulationContext, name:String): Unit ={
+    val pw = new PrintWriter(new File(DataMapper.outputBaseFolder + name + ".out" ))
+    pw.write(simulationContext.collectResult())
+    pw.close()
+  }
+
   private def initCars(amount: Int): List[Car] = {
-    (0 to amount).toList.map(new Car(_))
+    (0 until amount).toList.map(new Car(_))
   }
 
   private def readFromFile(file: String): ListBuffer[String] = {
-    Source.fromFile(InputDataMapper.baseFolder + file).getLines.toList.to[ListBuffer]
+    Source.fromFile(DataMapper.inputBaseFolder + file).getLines.toList.to[ListBuffer]
   }
 
   private def mapRider(riderStr: String, id: Int): Rider = {
@@ -45,7 +53,8 @@ class InputDataMapper(fileName: String) {
   }
 }
 
-object InputDataMapper {
-  private val baseFolder = new java.io.File(".").getCanonicalPath + "\\resources\\inputData\\"
+object DataMapper {
+  private val inputBaseFolder = new java.io.File(".").getCanonicalPath + "\\resources\\inputData\\"
+  private val outputBaseFolder = new java.io.File(".").getCanonicalPath + "\\resources\\outputData\\"
 }
 

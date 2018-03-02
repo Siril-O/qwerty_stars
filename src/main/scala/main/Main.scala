@@ -1,17 +1,20 @@
 package main
 
-import services.{InputDataMapper, SimulationRunner}
+import services.{DataMapper, SimulationRunner}
 
 object Main {
 
   def main(args: Array[String]): Unit = {
     try {
-      val mapper: InputDataMapper = new InputDataMapper("d_metropolis.in")
+      val mapper: DataMapper = new DataMapper("b_should_be_easy.in")
       val simulationContext = mapper.initSimulationContextFromInputData()
       val simulationRunner: SimulationRunner = new SimulationRunner()
 
-      profileTime{simulationRunner.runSimulation(simulationContext)}
+      profileTime {
+        simulationRunner.runSimulation(simulationContext)
+      }
       println(simulationContext.collectResult())
+      mapper.writOutputToFile(simulationContext, "b")
     } catch {
       case exc: Exception => println(exc)
     }

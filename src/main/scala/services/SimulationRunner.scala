@@ -5,9 +5,14 @@ import domain.{Car, Coordinate, Rider, SimulationContext}
 class SimulationRunner {
 
   def runSimulation(simulationContext: SimulationContext): Unit = {
-    (0 to simulationContext.steps).toList.foreach(step => {
-      performStepCalculations(simulationContext, step)
+    (0 until simulationContext.steps).toList.foreach(step => {
+      profileSteps(step, () => performStepCalculations(simulationContext, step))
     })
+  }
+
+  private def profileSteps(step: Int, stepLogic: () => Unit): Unit = {
+    println(s"Step :${step}")
+    stepLogic()
   }
 
   private def performStepCalculations(simulationContext: SimulationContext, step: Int): Unit = {
@@ -26,9 +31,9 @@ class SimulationRunner {
 
 
   private def reduceBookedStepForCars(riders: List[Rider], cars: List[Car]): Unit = {
-    val unassignedCars = cars.filter(_.bookedBy == null)
-    if (unassignedCars.nonEmpty) {
-      unassignedCars.foreach(updateCarInfo)
+    val assignedCars = cars.filter(_.bookedBy != null)
+    if (assignedCars.nonEmpty) {
+      cars.foreach(updateCarInfo)
     }
 
     def updateCarInfo(car: Car): Unit = {
