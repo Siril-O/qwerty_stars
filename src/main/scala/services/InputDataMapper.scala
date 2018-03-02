@@ -1,22 +1,25 @@
 package services
 
-import domain.{Coordinate, Rider, SimulationContext}
+import domain.{Car, Coordinate, Rider, SimulationContext}
 
 import scala.collection.mutable.ListBuffer
 import scala.io.Source
 
-class InputDataMapper(fileName:String) {
+class InputDataMapper(fileName: String) {
 
-  def mapInputData(): (SimulationContext,ListBuffer[Rider]) = {
+  def initSimulationContextFromInputData(): SimulationContext = {
     val lines: ListBuffer[String] = readFromFile(fileName)
-    val context = mapSimulationContext(lines.head)
     var index = 0
-    val riders = lines.drop(1).map(el => {
+    val riders: List[Rider] = lines.drop(1).map(el => {
       val rider: Rider = mapRider(el, index)
       index += 1
       rider
-    })
-    (context, riders)
+    }).toList
+    mapSimulationContext(lines.head, riders)
+  }
+
+  private def initCars(amount: Int): List[Car] = {
+    (0 to amount).toList.map(new Car(_))
   }
 
   private def readFromFile(file: String): ListBuffer[String] = {
@@ -33,11 +36,12 @@ class InputDataMapper(fileName:String) {
     riderStr.split(" ").map(_.toInt)
   }
 
-  private def mapSimulationContext(simContextStr: String): SimulationContext = {
+  private def mapSimulationContext(simContextStr: String, riders: List[Rider]): SimulationContext = {
     //todo add guava
     //    if(simContextStr == null) return None
     val values: Array[Int] = extractList(simContextStr)
-    new SimulationContext(values(0), values(1), values(2), values(3), values(4), values(5))
+    val cars = initCars(values(2))
+    new SimulationContext(values(0), values(1), values(2), values(3), values(4), values(5), cars, riders)
   }
 }
 

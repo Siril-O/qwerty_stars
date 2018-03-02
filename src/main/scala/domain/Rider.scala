@@ -1,5 +1,5 @@
 package domain
 
-class Rider(id: Int, start: Coordinate, destination: Coordinate, earliestStep: Int, latestStep: Int) {
+class Rider(val id: Int, val start: Coordinate, val destination: Coordinate, val earliestStep: Int, val latestStep: Int) {
   var bookedBy: Car = _
 }

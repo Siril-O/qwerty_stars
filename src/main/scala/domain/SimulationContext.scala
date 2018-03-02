@@ -1,4 +1,12 @@
 package domain
 
-class SimulationContext(rows: Int, columns: Int, vehicles: Int, rides: Int, bonus: Int, step: Int) {
+class SimulationContext(val rows: Int, val columns: Int,
+                        val vehicles: Int, val rides: Int,
+                        val bonus: Int, val steps: Int,
+                        val cars: List[Car], val riders: List[Rider]) {
+
+  def collectResult(): String = {
+    cars.map(car => car.assignedRiders.length + " " + car.assignedRiders.map(_.id).mkString(" "))
+      .mkString("\n")
+  }
 }
